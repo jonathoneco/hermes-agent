@@ -154,6 +154,7 @@ it('manual accent and imperative mode changes stop following and retain the disp
   expect(appearance.followingLocal).toBe(false)
   expect(css('--theme-background-seed')).toBe('#272e33')
   expect(css('--theme-primary')).toBe('#ff6a59')
+  expect(appearance.mode).toBe('dark')
   act(() => appearance.setFollowingLocal(true))
   act(() => requestMode('light'))
   expect(appearance.followingLocal).toBe(false)

@@ -77,9 +77,9 @@ import { $marketplaceInstalls, isUserTheme, removeUserTheme } from '@/themes/use
 import { setHermesConfigCache, useHermesConfigRecord } from '../hooks/use-config-record'
 
 import { AppearanceExtraSlot } from './appearance-contrib'
+import { AppearanceThemeModeControl, LocalThemeFollowSetting } from './appearance-local-theme'
 import type { AppearanceSubpageId } from './appearance-subpages'
 import { ChatFontSetting } from './chat-font-setting'
-import { MODE_OPTIONS } from './constants'
 import { setNested } from './helpers'
 import { MinimizeToTraySetting } from './minimize-to-tray-setting'
 import { PetSettings } from './pet-settings'
@@ -413,18 +413,7 @@ interface AppearanceSettingsProps {
 export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
   const { t, isSavingLocale } = useI18n()
 
-  const {
-    themeName,
-    mode,
-    resolvedMode,
-    availableThemes,
-    setTheme,
-    setMode,
-    followingLocal,
-    setFollowingLocal,
-    localThemeStatus,
-    localThemeError
-  } = useTheme()
+  const { themeName, resolvedMode, availableThemes, setTheme } = useTheme()
 
   const toolViewMode = useStore($toolViewMode)
   const toolViewShadowed = useStore($modeShadowed('toolViewMode'))
@@ -509,7 +498,6 @@ export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
   const activeProfileName =
     profiles.find(profile => normalizeProfileKey(profile.name) === activeProfileKey)?.name ?? activeProfileKey
 
-  const modeOptions = MODE_OPTIONS.map(({ id, icon }) => ({ icon, id, label: t.settings.modeOptions[id].label }))
 
   const toolOptions = [
     { id: 'product', label: a.product },
@@ -584,29 +572,11 @@ export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
           )}
 
           {show('theme') && (
-            <ToggleRow
-              checked={followingLocal}
-              description={
-                localThemeError ?? (localThemeStatus === 'absent' ? a.localThemeMissing : a.followLocalThemeDesc)
-              }
-              label={a.followLocalTheme}
-              onChange={setFollowingLocal}
-            />
-          )}
-          {show('theme') && (
             <ListRow
-              action={
-                <SegmentedControl
-                  onChange={id => {
-                    triggerHaptic('crisp')
-                    setMode(id)
-                  }}
-                  options={modeOptions}
-                  value={mode}
-                />
-              }
+              action={<AppearanceThemeModeControl />}
               below={
                 <>
+                  <LocalThemeFollowSetting />
                   {/* One search box: filters your installed themes (the grid)
                       and live-searches the VS Code Marketplace below. */}
                   <SearchField

@@ -1,5 +1,6 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
+import { appearanceThemeCopy } from './appearance-theme-copy'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { ruBoot } from './ru_boot'
 import { ruCatalog, ruSkillDeepLink } from './ru_catalog'
@@ -597,12 +598,7 @@ export const ruOverrides = {
       productDesc: 'Дружелюбная активность инструментов с краткими сводками.',
       technical: 'Технический',
       technicalDesc: 'Показывать сырые аргументы/результаты инструментов и низкоуровневые детали.',
-      themeTitle: 'Тема',
-      themeDesc: 'Только палитры для приложения. Выбранный режим применяется поверх.',
-      followLocalTheme: 'Follow local theme',
-      followLocalThemeDesc: 'Use the theme from the local picker for this profile. A manual theme or mode choice stops following.',
-      localThemeMissing: 'No local theme is available. Your saved theme stays active.',
-      themeProfileNote: profile => `Сохранено для профиля ${profile} — у каждого профиля своя тема.`,
+      ...appearanceThemeCopy['ru'],
       installTitle: 'Установить из VS Code',
       installDesc:
         'Вставьте id расширения с Marketplace (напр. dracula-theme.theme-dracula), чтобы преобразовать его цветовую тему в палитру приложения.',

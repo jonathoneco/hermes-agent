@@ -36,23 +36,20 @@ import { finalizeInterruptedMessages, sealOpenToolParts } from '@/lib/chat-messa
 import { tileFocusStampOnFocusChange } from '@/lib/session-timer-since'
 import { stableArray } from '@/lib/stable-array'
 import { readJson, writeJson } from '@/lib/storage'
-import { dropLocalFollowing, migrateLocalFollowing } from '@/themes/local-theme'
 import type { SessionInfo } from '@/types/hermes'
 
-import { dropStatusDrawersForProfile, migrateStatusDrawersForProfile } from './composer-status-drawer'
 import { registryConnectionKind } from './connection-registry-state'
 import { recordDislike } from './desktop-metrics'
 import { dialedGatewayModeFor } from './gateway'
 import {
   adoptPendingRuntimeTabs,
   dropPreviewTabsForProfile,
-  migratePreviewTabsForProfile,
   rekeyPreviewTabsSession,
   setPreviewScope
 } from './preview'
 import { forgetPendingRuntimeTabs } from './preview-ownership'
-import { dropPreviewArtifactsForProfile, migratePreviewArtifactsForProfile } from './preview-status'
 import { $activeGatewayProfile, normalizeProfileKey } from './profile'
+import { dropPresentationForProfile, migratePresentationForProfile } from './profile-presentation-lifecycle'
 import { $projectTree } from './project-tree'
 import { clearAllProviderWaits, clearSessionProviderWait } from './provider-wait'
 import {
@@ -2751,12 +2748,7 @@ export function dropTilesForProfile(
 
   const name = normalizeProfileKey(profile)
 
-  if (!route || !route.connectionId || route.connectionId === 'local') {
-    dropLocalFollowing(name)
-  }
-
-  dropPreviewArtifactsForProfile(name, route)
-  dropStatusDrawersForProfile(name, route)
+  dropPresentationForProfile(name, route)
   // Route fields go through the SAME canonicalization as `name` below — a
   // source-scoped delete must not be defeated by stray whitespace around a
   // profile name that a non-route delete trims away.
@@ -2874,7 +2866,6 @@ export function migrateTilesForProfile(oldProfile: string, newProfile: string): 
       : { ...owner, profile, ...(targetProfile === undefined ? {} : { targetProfile }) }
   }
 
-  migrateLocalFollowing(from, to)
   const moved = tilesByProfile[from]
 
   if (moved) {
@@ -2902,11 +2893,7 @@ export function migrateTilesForProfile(oldProfile: string, newProfile: string): 
   migrateTranscriptTailsForProfile(from, to)
   migrateRememberedNavigationForProfile(from, to)
   migrateSessionOwnerHintsForProfile(from, to)
-  migratePreviewArtifactsForProfile(from, to)
-  migrateStatusDrawersForProfile(from, to)
-  // Sibling family: the rail's profile-keyed buckets move with the rename, or
-  // the renamed profile opens with an empty rail and the old name keeps them.
-  migratePreviewTabsForProfile(from, to)
+  migratePresentationForProfile(from, to)
 }
 
 /** ⌘⇧T — reopen the most recently closed tab where it was, then focus it.

@@ -1,5 +1,6 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
+import { appearanceThemeCopy } from './appearance-theme-copy'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { frBoot } from './fr_boot'
 import { frClarify } from './fr_clarify'
@@ -1121,13 +1122,8 @@ export const frOverrides = {
       productDesc: 'Activité des outils lisible avec des résumés concis.',
       technical: 'Technique',
       technicalDesc: 'Inclure les arguments/résultats bruts des outils et les détails de bas niveau.',
-      themeTitle: 'Thème',
-      themeDesc: "Palettes desktop uniquement. Le mode sélectionné s'applique par-dessus.",
       themeSearchPlaceholder: 'Rechercher dans vos thèmes ou sur le Marketplace VS Code…',
-      followLocalTheme: 'Follow local theme',
-      followLocalThemeDesc: 'Use the theme from the local picker for this profile. A manual theme or mode choice stops following.',
-      localThemeMissing: 'No local theme is available. Your saved theme stays active.',
-      themeProfileNote: profile => `Enregistré pour le profil ${profile} — chaque profil conserve son propre thème.`,
+      ...appearanceThemeCopy['fr'],
       installTitle: 'Installer depuis VS Code',
       installDesc:
         "Collez un identifiant d'extension Marketplace (ex. dracula-theme.theme-dracula) pour convertir son thème de couleur en palette desktop.",

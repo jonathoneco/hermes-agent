@@ -1,3 +1,4 @@
+import { appearanceThemeCopy } from './appearance-theme-copy'
 import { arUpdateChannel } from './ar_update_channel'
 import type { TranslationOverrides } from './define-locale'
 
@@ -340,12 +341,7 @@ export const arSettings = {
       productDesc: 'عرض أنظف يركز على النتيجة.',
       technical: 'تقني',
       technicalDesc: 'يعرض تفاصيل أكثر عن الأدوات والتنفيذ.',
-      themeTitle: 'الثيم',
-      themeDesc: 'اختر ثيم سطح المكتب.',
-      followLocalTheme: 'Follow local theme',
-      followLocalThemeDesc: 'Use the theme from the local picker for this profile. A manual theme or mode choice stops following.',
-      localThemeMissing: 'No local theme is available. Your saved theme stays active.',
-      themeProfileNote: profile => `سيطبق هذا الثيم على الملف الشخصي ${profile}.`,
+      ...appearanceThemeCopy['ar'],
       installTitle: 'تثبيت ثيم',
       installDesc: 'ألصق رابط ثيم أو اسمه لتثبيته.',
       installPlaceholder: 'رابط أو اسم الثيم',

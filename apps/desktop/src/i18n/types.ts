@@ -1,13 +1,13 @@
+import type { ErrorCodeKey } from '@/lib/error-surface'
 // Desktop i18n type contract.
 //
 // `Translations` is the single source of truth for every translatable string
 // surface. Fully translated locale files may satisfy this interface directly;
 // partial locales should use `defineLocale()` so missing desktop-only strings
 // fall back to English while new keys remain type-checked.
-
-import type { ErrorCodeKey } from '@/lib/error-surface'
 import type { TipId } from '@/lib/tips/catalog'
 
+import type { AppearanceThemeCopy } from './appearance-theme-copy'
 import type { AppTourTranslations } from './types_app_tour'
 import type { BillingTranslations } from './types_billing'
 import type { BootTranslations } from './types_boot'
@@ -778,7 +778,7 @@ catalog: CatalogTranslations
     sections: Record<string, string>
     searchPlaceholder: Record<'about' | 'config' | 'gateway' | 'keys' | 'mcp' | 'sessions', string>
     modeOptions: Record<'light' | 'dark' | 'system', ModeOptionCopy>
-    appearance: {
+    appearance: AppearanceThemeCopy & {
       title: string
       intro: string
       colorMode: string
@@ -875,13 +875,7 @@ catalog: CatalogTranslations
       productDesc: string
       technical: string
       technicalDesc: string
-      themeTitle: string
-      themeDesc: string
       themeSearchPlaceholder: string
-      followLocalTheme: string
-      followLocalThemeDesc: string
-      localThemeMissing: string
-      themeProfileNote: (profile: string) => string
       installTitle: string
       installDesc: string
       installPlaceholder: string

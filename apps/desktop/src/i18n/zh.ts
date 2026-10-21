@@ -1,5 +1,6 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
+import { appearanceThemeCopy } from './appearance-theme-copy'
 import { defineLocale, type TranslationOverrides } from './define-locale'
 import { introZh } from './intro-zh'
 import { zhCatalog, zhSkillDeepLink } from './zh_catalog'
@@ -837,13 +838,8 @@ export const zhOverrides = {
       productDesc: '易读的工具活动与简洁摘要。',
       technical: '技术',
       technicalDesc: '包含原始工具参数/结果及底层细节。',
-      themeTitle: '主题',
-      themeDesc: '仅桌面端调色板。所选模式叠加其上。',
       themeSearchPlaceholder: '搜索本地主题或 VS Code 市场…',
-      followLocalTheme: 'Follow local theme',
-      followLocalThemeDesc: 'Use the theme from the local picker for this profile. A manual theme or mode choice stops following.',
-      localThemeMissing: 'No local theme is available. Your saved theme stays active.',
-      themeProfileNote: profile => `已为「${profile}」配置文件保存——每个配置文件保留各自的主题。`,
+      ...appearanceThemeCopy['zh'],
       installTitle: '从 VS Code 安装',
       installDesc: '粘贴 Marketplace 扩展 ID（例如 dracula-theme.theme-dracula），将其配色主题转换为桌面调色板。',
       installPlaceholder: 'publisher.extension',

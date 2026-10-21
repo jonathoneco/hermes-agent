@@ -2,6 +2,8 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 
+import type { App, BrowserWindow, IpcMain } from 'electron'
+
 import { type LocalThemeState, parseLocalTheme } from '../shared/local-theme'
 
 export function openLocalThemeSource(
@@ -110,4 +112,25 @@ export function openLocalThemeSource(
       listeners.clear()
     }
   }
+}
+
+export function registerLocalThemeBridge({ app, ipcMain, windows }: {
+  app: App
+  ipcMain: IpcMain
+  windows: () => BrowserWindow[]
+}) {
+  const source = openLocalThemeSource()
+  source.subscribe(state => {
+    for (const win of windows()) {
+      if (!win.isDestroyed()) {
+        win.webContents.send('hermes:local-theme:changed', state)
+      }
+    }
+  })
+  ipcMain.on('hermes:local-theme:get', event => {
+    source.refresh()
+    event.returnValue = source.current
+  })
+  app.on('browser-window-focus', source.refresh)
+  app.on('will-quit', source.dispose)
 }

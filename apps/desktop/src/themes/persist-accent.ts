@@ -1,7 +1,10 @@
+import { $activeGatewayProfile, normalizeProfileKey } from '@/store/profile'
+
 import { setAccentOverride } from './accent-override'
 import { normalizeHex } from './color'
 import { accentBase, accentedTheme, committedTheme } from './context'
-import { requestTheme } from './request'
+import { $localFollowing, $localTheme } from './local-theme'
+import { requestMode, requestTheme } from './request'
 import { installUserTheme, resolveTheme } from './user-themes'
 
 /**
@@ -17,6 +20,13 @@ export function persistAccent(accent: null | string): void {
   }
 
   const active = committedTheme()
+  const local = $localTheme.get()
+  const follows = $localFollowing.get()[normalizeProfileKey($activeGatewayProfile.get())] === 'on'
+
+  if (follows && local.kind === 'ready') {
+    requestMode(local.document.mode)
+  }
+
   const next = hex === null ? accentBase(active) : accentedTheme(active, hex)
 
   requestTheme(next.accentOf || !resolveTheme(next.name) ? installUserTheme(next).name : next.name)

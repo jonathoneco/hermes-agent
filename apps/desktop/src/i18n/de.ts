@@ -1,5 +1,6 @@
 import { defineFieldCopy } from '@/app/settings/field-copy'
 
+import { appearanceThemeCopy } from './appearance-theme-copy'
 import { deBoot } from './de_boot'
 import { deClarify } from './de_clarify'
 import { deConnectorAccounts } from './de_connector_accounts'
@@ -1116,13 +1117,8 @@ export const deOverrides = {
       productDesc: 'Menschlich verständliche Tool-Aktivität mit knappen Zusammenfassungen.',
       technical: 'Technisch',
       technicalDesc: 'Rohe Tool-Argumente/-Ergebnisse und Low-Level-Details einbeziehen.',
-      themeTitle: 'Theme',
-      themeDesc: 'Nur Desktop-Paletten. Der gewählte Modus wird oben drauf angewendet.',
       themeSearchPlaceholder: 'Ihre Themes oder den VS Code Marketplace durchsuchen…',
-      followLocalTheme: 'Follow local theme',
-      followLocalThemeDesc: 'Use the theme from the local picker for this profile. A manual theme or mode choice stops following.',
-      localThemeMissing: 'No local theme is available. Your saved theme stays active.',
-      themeProfileNote: profile => `Für das Profil ${profile} gespeichert — jedes Profil behält sein eigenes Theme.`,
+      ...appearanceThemeCopy['de'],
       installTitle: 'Aus VS Code installieren',
       installDesc:
         'Fügen Sie eine Marketplace-Erweiterungs-ID ein (z. B. dracula-theme.theme-dracula), um ihr Farbschema in eine Desktop-Palette umzuwandeln.',

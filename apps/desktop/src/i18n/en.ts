@@ -1,5 +1,6 @@
 import { FIELD_DESCRIPTIONS, FIELD_LABELS } from '@/app/settings/constants'
 
+import { appearanceThemeCopy } from './appearance-theme-copy'
 import { enAppTour } from './en_app_tour'
 import { enBilling } from './en_billing'
 import { enBoot } from './en_boot'
@@ -1085,13 +1086,8 @@ export const en: Translations = {
       productDesc: 'Human-friendly tool activity with concise summaries.',
       technical: 'Technical',
       technicalDesc: 'Include raw tool args/results and low-level details.',
-      themeTitle: 'Theme',
-      themeDesc: 'Desktop palettes only. The selected mode is applied on top.',
       themeSearchPlaceholder: 'Search your themes or the VS Code Marketplace…',
-      followLocalTheme: 'Follow local theme',
-      followLocalThemeDesc: 'Use the theme from the local picker for this profile. A manual theme or mode choice stops following.',
-      localThemeMissing: 'No local theme is available. Your saved theme stays active.',
-      themeProfileNote: profile => `Saved for the ${profile} profile — each profile keeps its own theme.`,
+      ...appearanceThemeCopy['en'],
       installTitle: 'Install from VS Code',
       installDesc:
         'Paste a Marketplace extension id (e.g. dracula-theme.theme-dracula) to convert its color theme into a desktop palette.',
