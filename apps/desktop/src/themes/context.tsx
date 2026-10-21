@@ -31,6 +31,7 @@ import {
 } from './backend-sync'
 import { $chatFontFamily, resolveChatFontFamily } from './chat-font'
 import { harmonize, normalizeHex, readableInk } from './color'
+import { $localFollowing, $localTheme, resolveLocalAppearance, setLocalFollowing } from './local-theme'
 import { BUILTIN_THEME_LIST, DEFAULT_SKIN_NAME, DEFAULT_TYPOGRAPHY, nousTheme, RETIRED_SKINS } from './presets'
 import { $pendingModeApply } from './request'
 import { retintTheme } from './retint'
@@ -136,8 +137,16 @@ const storedSkin = (profile: string): string =>
   (profile === BOOT_PROFILE_KEY ? (localDisplaySkinName ?? DEFAULT_SKIN_NAME) : DEFAULT_SKIN_NAME)
 
 /** The live profile's committed theme: what the ThemeProvider paints without a preview. */
-export const committedTheme = (): DesktopTheme =>
-  resolveTheme(normalizeSkin(storedSkin(normalizeProfileKey($activeGatewayProfile.get())))) ?? nousTheme
+export const committedTheme = (): DesktopTheme => {
+  const profile = normalizeProfileKey($activeGatewayProfile.get())
+  const state = $localTheme.get()
+
+  if ($localFollowing.get()[profile] === 'on' && state.kind === 'ready') {
+    return state.document.theme
+  }
+
+  return resolveTheme(normalizeSkin(storedSkin(profile))) ?? nousTheme
+}
 
 /** Everything a peer window could change that this one has to repaint for. */
 const APPEARANCE_KEYS = new Set([SKIN_KEY, PROFILE_SKINS_KEY, MODE_KEY, PROFILE_MODES_KEY])
@@ -454,10 +463,17 @@ const syncNativeTheme = (pref: ThemeMode, rendered: 'light' | 'dark') =>
 if (typeof window !== 'undefined') {
   const profile = BOOT_PROFILE_KEY
   const pref = modePref.resolve(profile)
-  const resolved = resolveMode(pref)
-  const theme = deriveTheme(normalizeSkin(storedSkin(profile)), resolved)
+
+  const local = resolveLocalAppearance(
+    $localTheme.get(),
+    $localFollowing.get()[profile] === 'on',
+    matchesQuery('(prefers-color-scheme: dark)')
+  )
+
+  const resolved = local?.resolvedMode ?? resolveMode(pref)
+  const theme = local?.theme ?? deriveTheme(normalizeSkin(storedSkin(profile)), resolved)
   applyTheme(theme, resolved)
-  syncNativeTheme(pref, renderedModeFor(theme.colors, resolved))
+  syncNativeTheme(local?.mode ?? pref, renderedModeFor(theme.colors, resolved))
 }
 
 // ─── Context ────────────────────────────────────────────────────────────────
@@ -465,6 +481,10 @@ if (typeof window !== 'undefined') {
 interface ThemeContextValue {
   theme: DesktopTheme
   themeName: string
+  followingLocal: boolean
+  localThemeStatus: 'absent' | 'ready' | 'invalid'
+  localThemeError: string | null
+  setFollowingLocal: (enabled: boolean) => void
   mode: ThemeMode
   /** The light/dark switch the user picked. */
   resolvedMode: 'light' | 'dark'
@@ -492,6 +512,10 @@ const SKIN_LIST = BUILTIN_THEME_LIST.map(({ name, label, description }) => ({ na
 const ThemeContext = createContext<ThemeContextValue>({
   theme: nousTheme,
   themeName: DEFAULT_SKIN_NAME,
+  followingLocal: false,
+  localThemeStatus: 'absent',
+  localThemeError: null,
+  setFollowingLocal: () => {},
   mode: 'light',
   resolvedMode: 'light',
   renderedMode: 'light',
@@ -569,8 +593,27 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('storage', onStorage)
   }, [])
 
+  const localTheme = useStore($localTheme)
+  const followingProfiles = useStore($localFollowing)
+  const followingLocal = followingProfiles[profileKey] === 'on'
+  useEffect(() => window.hermesDesktop?.localTheme?.subscribe(state => $localTheme.set(state)), [])
+
+  const setFollowingLocal = useCallback(
+    (enabled: boolean) => {
+      setLocalFollowing(profileKey, enabled)
+      setPreview(null)
+    },
+    [profileKey]
+  )
+
   const systemDark = useMediaQuery('(prefers-color-scheme: dark)')
-  const resolvedMode = resolveMode(mode, systemDark)
+
+  const followed = useMemo(
+    () => resolveLocalAppearance(localTheme, followingLocal, systemDark),
+    [localTheme, followingLocal, systemDark]
+  )
+
+  const resolvedMode = followed?.resolvedMode ?? resolveMode(mode, systemDark)
 
   // Transient highlight preview (palette theme picker). It is never
   // persisted. A commit or an explicit clear returns the paint to the
@@ -588,15 +631,16 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const paintedName = preview ? preview.name : committedName
   const paintedMode = preview ? preview.mode : resolvedMode
+  const nativeMode = preview ? preview.mode : (followed?.mode ?? mode)
 
   const activeTheme = useMemo(
-    () => deriveTheme(paintedName, paintedMode),
+    () => (!preview && followed ? followed.theme : deriveTheme(paintedName, paintedMode)),
     // deriveTheme resolves its seed through the merged registry, so the theme
     // stores are its reactivity too — an in-place palette edit of the ACTIVE
     // skin (live theme authoring) must repaint, not just a name switch. The
     // backend CSS store matters the same way for built-in-named user skins.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [paintedName, paintedMode, userThemes, backendThemes, backendCustomCSS, registryVersion]
+    [paintedName, paintedMode, userThemes, backendThemes, backendCustomCSS, registryVersion, preview, followed]
   )
 
   // Unsaved accent preview (dev picker, onboarding accent card). `null` returns
@@ -608,8 +652,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     () =>
       accentOverride === null
         ? activeTheme
-        : deriveFrom(accentedTheme(resolveTheme(paintedName) ?? nousTheme, accentOverride), paintedMode),
-    [activeTheme, accentOverride, paintedName, paintedMode]
+        : deriveFrom(
+            accentedTheme(
+              !preview && followed ? followed.theme : (resolveTheme(paintedName) ?? nousTheme),
+              accentOverride
+            ),
+            paintedMode
+          ),
+    [activeTheme, accentOverride, paintedName, paintedMode, preview, followed]
   )
 
   // What actually gets painted (matches the `.dark` class applyTheme toggles).
@@ -623,7 +673,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   // Keep the native window appearance pinned to the app theme (vibrancy
   // material, titlebar, new-window pre-paint background).
-  useEffect(() => syncNativeTheme(mode, renderedMode), [mode, renderedMode])
+  useEffect(() => syncNativeTheme(nativeMode, renderedMode), [nativeMode, renderedMode])
 
   // Assign to whichever profile is live right now (read fresh so the callbacks
   // stay stable across profile switches).
@@ -631,6 +681,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const setTheme = useCallback((name: string) => {
     const next = normalizeSkin(name)
+    setLocalFollowing(liveProfile(), false)
     recordFeatureUse('skins')
     setPreview(null)
     setThemeNameState(next)
@@ -638,6 +689,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const setMode = useCallback((next: ThemeMode) => {
+    setLocalFollowing(liveProfile(), false)
     recordFeatureUse('skins')
     setPreview(null)
     setModeState(next)
@@ -650,14 +702,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const clearThemePreview = useCallback(() => setPreview(null), [])
 
-  // Drain a backend-driven skin switch (Hermes authoring/activating a skin from a
-  // prompt, or `/skin` on another surface). setTheme persists it per profile, so
-  // the choice sticks like any manual pick.
   const pendingSkin = useStore($pendingSkinApply)
 
   useEffect(() => {
     if (pendingSkin) {
-      setTheme(pendingSkin)
+      setPreview(null)
+      setThemeNameState(normalizeSkin(pendingSkin))
+      skinPref.assign(liveProfile(), normalizeSkin(pendingSkin))
       $pendingSkinApply.set(null)
     }
   }, [pendingSkin, setTheme])
@@ -667,7 +718,9 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (pendingMode) {
-      setMode(pendingMode)
+      setPreview(null)
+      setModeState(pendingMode)
+      modePref.assign(liveProfile(), pendingMode)
       $pendingModeApply.set(null)
     }
   }, [pendingMode, setMode])
@@ -678,8 +731,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const value = useMemo<ThemeContextValue>(
     () => ({
       theme: paintedTheme,
-      themeName: committedName,
-      mode,
+      themeName: followed?.theme.name ?? committedName,
+      followingLocal,
+      localThemeStatus: localTheme.kind,
+      localThemeError: localTheme.kind === 'invalid' ? localTheme.message : null,
+      setFollowingLocal,
+      mode: followed?.mode ?? mode,
       resolvedMode,
       renderedMode,
       availableThemes,
@@ -691,7 +748,12 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     [
       paintedTheme,
       committedName,
+      followingLocal,
+      localTheme,
+      setFollowingLocal,
       mode,
+      followed?.mode,
+      followed?.theme.name,
       resolvedMode,
       renderedMode,
       availableThemes,

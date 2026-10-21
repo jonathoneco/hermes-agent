@@ -355,6 +355,7 @@ import {
 import { createLocalBackendLifecycle, waitForTeardown } from './local-backend-lifecycle'
 import { resolveIpcFileReadPath, resolveMediaStreamFile, resolvePreviewTargetPath } from './local-read-path'
 import { localSkinProfileKey, readLocalSkinPayload } from './local-skin'
+import { openLocalThemeSource } from './local-theme'
 import { ACTIVE_LOG_POLL_MS, planLogRotation, reclaimActiveLogIfOversized } from './log-rotation'
 import { registerMachineProfile } from './machine-profile'
 import { createMainProcessLagWatchdog } from './main-process-lag-watchdog'
@@ -15277,6 +15278,7 @@ ipcMain.handle('hermes:gateway:ws-url-for', async (_event, payload) => {
 
 const pluginWsUrl = createPluginWsUrlHandler({ ensureBackend, ensureRegistryBackend, forgetLocalGatewayDescriptor,
   forgetRegistryLocalGatewayDescriptor, launchHome: HERMES_HOME, prepare: localGatewayDials.preparePlugin })
+
 ipcMain.handle('hermes:plugin:ws-url', (event, payload) => pluginWsUrl(payload ?? {}, event.sender.id))
 
 // Transactional update for a Desktop-managed SSH install. Unlike the generic
@@ -17285,6 +17287,21 @@ ipcMain.on('hermes:logs:renderer-error', (_event, report) => {
   rememberLog(formatRendererBoundaryReport(label, boundary, message, componentStack))
   flushDesktopLogBufferSync()
 })
+
+const localThemeSource = openLocalThemeSource()
+localThemeSource.subscribe(state => {
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (!win.isDestroyed()) {
+      win.webContents.send('hermes:local-theme:changed', state)
+    }
+  }
+})
+ipcMain.on('hermes:local-theme:get', event => {
+  localThemeSource.refresh()
+  event.returnValue = localThemeSource.current
+})
+app.on('browser-window-focus', () => localThemeSource.refresh())
+app.on('will-quit', () => localThemeSource.dispose())
 
 // The preload reads this small, sanitized payload synchronously so the renderer
 // can register the local skin before its first theme paint. It stays independent

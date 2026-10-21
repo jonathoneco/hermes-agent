@@ -20,6 +20,40 @@ Hermes has several front ends that all talk to the same agent:
 Pick whichever fits the moment. They share state, so you can start a session in one and resume it in another.
 :::
 
+## Follow a local theme
+
+Enable **Settings > Appearance > Theme > Follow local theme** for the profile
+that should follow this device's theme picker. Other profiles keep their own
+settings. A manual theme or mode choice stops following. Turn following on again
+to resume without losing the saved manual theme.
+
+Desktop reads `$XDG_CONFIG_HOME/hermes-desktop/local-theme.json`, or
+`~/.config/hermes-desktop/local-theme.json` when `XDG_CONFIG_HOME` is unset.
+The theme publisher owns this file. Desktop reads it on startup and watches for
+atomic replacements. Updates need no backend connection or app restart.
+
+The version 1 JSON document contains `version`, `mode`, and `theme`. `mode` is
+`light`, `dark`, or `system`. `theme` uses the Desktop theme model with `name`,
+`label`, `description`, complete `colors` and `darkColors`, and complete
+`terminal` and `darkTerminal` palettes. Colors must be six-digit RGB hex values.
+Fixed themes supply the same values in both palette slots. Adaptive themes
+supply their actual light and dark palettes. External CSS, fonts, URLs, and
+accent references are rejected.
+
+The file supplies palette inputs. Desktop keeps its contrast adjustments, glass
+surfaces, and derived CSS colors. Integrated terminals retain their live UI
+background. Their foreground, cursor, selection background, and ANSI colors
+follow the supplied terminal palette.
+
+If the file is missing or invalid, Desktop shows the saved manual theme. Invalid
+input appears beside the follow control. A temporary theme preview within
+Desktop takes priority until that preview ends. Backend skin events update the
+saved manual choice without turning off an explicit follow choice.
+
+A picker can preview by replacing this file and cancel by restoring its exact
+original bytes or original absence. Crash recovery belongs to the publisher.
+Desktop does not write the palette file or restore a picker's journal.
+
 ## Install
 
 Download the app from the [Hermes Desktop product page](https://hermes-agent.nousresearch.com/desktop), or follow the [installation instructions for Hermes Desktop](../getting-started/installation.md).

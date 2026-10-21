@@ -11,6 +11,7 @@ import type { KeepAwakeMode } from '../electron/power-save'
 import type { UpdateHoldWire } from '../electron/update-hold-types'
 import type { UpdateRunReport } from '../electron/updater/update-metrics'
 import type { WindowSizeMode } from '../electron/window-size-types'
+import type { LocalThemeState } from '../shared/local-theme'
 
 import type { WakeIndicatorState } from './lib/wake-indicator'
 import type {
@@ -386,6 +387,10 @@ declare global {
       /** Dev-only launch flag (`--fresh-install`, unpackaged builds): onboarding treats this launch as a fresh install. */
       assumeFreshInstall?: boolean
       /** Sanitized local `display.skin`, available before any gateway connects. */
+      localTheme?: {
+        get: () => LocalThemeState
+        subscribe: (listener: (state: LocalThemeState) => void) => () => void
+      }
       localSkin?: { profile: string; skin: HermesSkin } | null
       setTranslucency?: (payload: TranslucencyState) => void
       setKeepAwake?: (mode: KeepAwakeMode) => void

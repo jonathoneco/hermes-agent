@@ -1,3 +1,4 @@
+import { backendScopeKey, type GatewayEvent, LOCAL_CONNECTION_ID, registryBackendScopeKey } from '@hermes/shared'
 /**
  * MULTI-SESSION VIEW STATE — the reactive face of the per-runtime session
  * cache (`sessionStateByRuntimeIdRef` in use-session-state-cache).
@@ -15,8 +16,6 @@
  * owns resume/submit (it has the gateway + cache internals) and registers
  * itself here as the delegate so tile UI stays dependency-light.
  */
-
-import { backendScopeKey, type GatewayEvent, LOCAL_CONNECTION_ID, registryBackendScopeKey } from '@hermes/shared'
 import { atom, computed } from 'nanostores'
 
 import { setSessionOwnerResolver } from '@/api/client'
@@ -37,6 +36,7 @@ import { finalizeInterruptedMessages, sealOpenToolParts } from '@/lib/chat-messa
 import { tileFocusStampOnFocusChange } from '@/lib/session-timer-since'
 import { stableArray } from '@/lib/stable-array'
 import { readJson, writeJson } from '@/lib/storage'
+import { dropLocalFollowing, migrateLocalFollowing } from '@/themes/local-theme'
 import type { SessionInfo } from '@/types/hermes'
 
 import { dropStatusDrawersForProfile, migrateStatusDrawersForProfile } from './composer-status-drawer'
@@ -2750,6 +2750,11 @@ export function dropTilesForProfile(
   }
 
   const name = normalizeProfileKey(profile)
+
+  if (!route || !route.connectionId || route.connectionId === 'local') {
+    dropLocalFollowing(name)
+  }
+
   dropPreviewArtifactsForProfile(name, route)
   dropStatusDrawersForProfile(name, route)
   // Route fields go through the SAME canonicalization as `name` below — a
@@ -2869,6 +2874,7 @@ export function migrateTilesForProfile(oldProfile: string, newProfile: string): 
       : { ...owner, profile, ...(targetProfile === undefined ? {} : { targetProfile }) }
   }
 
+  migrateLocalFollowing(from, to)
   const moved = tilesByProfile[from]
 
   if (moved) {

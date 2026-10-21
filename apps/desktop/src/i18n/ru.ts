@@ -599,6 +599,9 @@ export const ruOverrides = {
       technicalDesc: 'Показывать сырые аргументы/результаты инструментов и низкоуровневые детали.',
       themeTitle: 'Тема',
       themeDesc: 'Только палитры для приложения. Выбранный режим применяется поверх.',
+      followLocalTheme: 'Follow local theme',
+      followLocalThemeDesc: 'Use the theme from the local picker for this profile. A manual theme or mode choice stops following.',
+      localThemeMissing: 'No local theme is available. Your saved theme stays active.',
       themeProfileNote: profile => `Сохранено для профиля ${profile} — у каждого профиля своя тема.`,
       installTitle: 'Установить из VS Code',
       installDesc:

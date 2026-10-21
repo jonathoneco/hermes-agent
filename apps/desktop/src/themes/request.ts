@@ -1,19 +1,10 @@
-/**
- * Imperative theme switching, for callers with no component to hang a hook on.
- *
- * `useTheme().setTheme` is the React door and covers every in-app surface, but
- * not every switch happens during a render. The backend announces a `/skin`
- * change over the gateway, and a plugin may want to repaint when a connection
- * comes up or a background event fires. Those callers write a name to
- * `$pendingSkinApply`; the ThemeProvider drains it through `setTheme`, so an
- * imperative switch normalizes, persists per profile, and drops any preview
- * exactly like a manual pick — one policy, one owner.
- */
-
 import { atom } from 'nanostores'
+
+import { $activeGatewayProfile, normalizeProfileKey } from '@/store/profile'
 
 import { $pendingSkinApply } from './backend-sync'
 import type { ThemeMode } from './context'
+import { setLocalFollowing } from './local-theme'
 import { resolveTheme } from './user-themes'
 
 /**
@@ -31,15 +22,17 @@ export function requestTheme(name: string): boolean {
     return false
   }
 
+  setLocalFollowing(normalizeProfileKey($activeGatewayProfile.get()), false)
   $pendingSkinApply.set(name)
 
   return true
 }
 
-/** One-shot light/dark/system switch the ThemeProvider drains through `setMode` (it clears this). */
+/** One-shot manual mode request, cleared by ThemeProvider. */
 export const $pendingModeApply = atom<null | ThemeMode>(null)
 
 /** Ask for a mode switch from outside React; persisted per profile like a manual pick. */
 export function requestMode(mode: ThemeMode): void {
+  setLocalFollowing(normalizeProfileKey($activeGatewayProfile.get()), false)
   $pendingModeApply.set(mode)
 }

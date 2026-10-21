@@ -1088,6 +1088,9 @@ export const en: Translations = {
       themeTitle: 'Theme',
       themeDesc: 'Desktop palettes only. The selected mode is applied on top.',
       themeSearchPlaceholder: 'Search your themes or the VS Code Marketplace…',
+      followLocalTheme: 'Follow local theme',
+      followLocalThemeDesc: 'Use the theme from the local picker for this profile. A manual theme or mode choice stops following.',
+      localThemeMissing: 'No local theme is available. Your saved theme stays active.',
       themeProfileNote: profile => `Saved for the ${profile} profile — each profile keeps its own theme.`,
       installTitle: 'Install from VS Code',
       installDesc:

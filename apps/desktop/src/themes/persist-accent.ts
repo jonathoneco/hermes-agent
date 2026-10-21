@@ -2,7 +2,7 @@ import { setAccentOverride } from './accent-override'
 import { normalizeHex } from './color'
 import { accentBase, accentedTheme, committedTheme } from './context'
 import { requestTheme } from './request'
-import { installUserTheme } from './user-themes'
+import { installUserTheme, resolveTheme } from './user-themes'
 
 /**
  * Save an accent on the live profile's theme: only its accent moves, saved as the `<base>-accent-<hex>` user theme
@@ -19,7 +19,7 @@ export function persistAccent(accent: null | string): void {
   const active = committedTheme()
   const next = hex === null ? accentBase(active) : accentedTheme(active, hex)
 
-  requestTheme(next.accentOf ? installUserTheme(next).name : next.name)
+  requestTheme(next.accentOf || !resolveTheme(next.name) ? installUserTheme(next).name : next.name)
   setAccentOverride(null)
 }
 

@@ -412,7 +412,20 @@ interface AppearanceSettingsProps {
 
 export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
   const { t, isSavingLocale } = useI18n()
-  const { themeName, mode, resolvedMode, availableThemes, setTheme, setMode } = useTheme()
+
+  const {
+    themeName,
+    mode,
+    resolvedMode,
+    availableThemes,
+    setTheme,
+    setMode,
+    followingLocal,
+    setFollowingLocal,
+    localThemeStatus,
+    localThemeError
+  } = useTheme()
+
   const toolViewMode = useStore($toolViewMode)
   const toolViewShadowed = useStore($modeShadowed('toolViewMode'))
   const hideCodeDiffs = useStore($hideCodeDiffs)
@@ -570,6 +583,16 @@ export function AppearanceSettings({ subpage }: AppearanceSettingsProps = {}) {
             />
           )}
 
+          {show('theme') && (
+            <ToggleRow
+              checked={followingLocal}
+              description={
+                localThemeError ?? (localThemeStatus === 'absent' ? a.localThemeMissing : a.followLocalThemeDesc)
+              }
+              label={a.followLocalTheme}
+              onChange={setFollowingLocal}
+            />
+          )}
           {show('theme') && (
             <ListRow
               action={

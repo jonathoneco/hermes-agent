@@ -1121,6 +1121,9 @@ export const esOverrides = {
       themeTitle: 'Tema',
       themeDesc: 'Paletas solo para escritorio. Se aplican sobre el modo seleccionado.',
       themeSearchPlaceholder: 'Busca en tus temas o en el VS Code Marketplace…',
+      followLocalTheme: 'Follow local theme',
+      followLocalThemeDesc: 'Use the theme from the local picker for this profile. A manual theme or mode choice stops following.',
+      localThemeMissing: 'No local theme is available. Your saved theme stays active.',
       themeProfileNote: profile => `Guardado para el perfil ${profile}; cada perfil conserva su propio tema.`,
       installTitle: 'Instalar desde VS Code',
       installDesc:

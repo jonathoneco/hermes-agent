@@ -22,6 +22,13 @@ const launchFlags: { localModels?: boolean; assumeFreshInstall?: boolean } | und
 // not wait on `gateway.ready`, so an unreachable remote primary cannot force
 // the built-in palette over the skin configured on this machine.
 const localSkin = ipcRenderer.sendSync('hermes:skin:local')
+let localThemeState = ipcRenderer.sendSync('hermes:local-theme:get')
+const localThemeListeners = new Set<(state: unknown) => void>()
+ipcRenderer.on('hermes:local-theme:changed', (_event, state) => {
+  localThemeState = state
+
+  for (const listener of localThemeListeners) {listener(state)}
+})
 
 import { unwrapExpectedNotFound } from './api-expected-404'
 
@@ -35,6 +42,15 @@ contextBridge.exposeInMainWorld('hermesDesktop', {
   // onboarding treats this launch as a fresh install. Always false when packaged.
   assumeFreshInstall: launchFlags?.assumeFreshInstall === true,
   localSkin: localSkin && typeof localSkin === 'object' ? localSkin : null,
+  localTheme: {
+    get: () => localThemeState,
+    subscribe: (listener: (state: unknown) => void) => {
+      localThemeListeners.add(listener)
+      listener(localThemeState)
+
+      return () => { localThemeListeners.delete(listener) }
+    }
+  },
   getConnection: (profile, opts) => ipcRenderer.invoke('hermes:connection', profile, opts),
   // Loopback origin that hosts YouTube's player for the file:// renderer.
   getEmbedHostOrigin: () => ipcRenderer.invoke('hermes:embed-host:origin'),

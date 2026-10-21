@@ -1119,6 +1119,9 @@ export const deOverrides = {
       themeTitle: 'Theme',
       themeDesc: 'Nur Desktop-Paletten. Der gewählte Modus wird oben drauf angewendet.',
       themeSearchPlaceholder: 'Ihre Themes oder den VS Code Marketplace durchsuchen…',
+      followLocalTheme: 'Follow local theme',
+      followLocalThemeDesc: 'Use the theme from the local picker for this profile. A manual theme or mode choice stops following.',
+      localThemeMissing: 'No local theme is available. Your saved theme stays active.',
       themeProfileNote: profile => `Für das Profil ${profile} gespeichert — jedes Profil behält sein eigenes Theme.`,
       installTitle: 'Aus VS Code installieren',
       installDesc:

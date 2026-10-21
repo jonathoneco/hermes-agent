@@ -878,6 +878,9 @@ catalog: CatalogTranslations
       themeTitle: string
       themeDesc: string
       themeSearchPlaceholder: string
+      followLocalTheme: string
+      followLocalThemeDesc: string
+      localThemeMissing: string
       themeProfileNote: (profile: string) => string
       installTitle: string
       installDesc: string
